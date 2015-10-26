@@ -7,7 +7,7 @@ use radix_trie::Trie;
 
 
 fn print_words() -> Result<(), std::io::Error> {
-    let f = try!(File::open("/usr/share/dict/american-english-insane"));
+    let f = try!(File::open("./words"));
     let reader = BufReader::new(f);
     let mut trie: Trie<String, ()> = Trie::new();
 

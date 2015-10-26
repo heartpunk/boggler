@@ -1,0 +1,7 @@
+[package]
+name = "boggler"
+version = "0.1.0"
+authors = ["Ezekiel Smithburg <tehgeekmeister@gmail.com>"]
+
+[dependencies]
+radix_trie = "0.0.8"

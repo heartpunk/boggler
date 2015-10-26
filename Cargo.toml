@@ -5,3 +5,4 @@ authors = ["Ezekiel Smithburg <tehgeekmeister@gmail.com>"]
 
 [dependencies]
 radix_trie = "0.0.8"
+petgraph = "0.1.11"

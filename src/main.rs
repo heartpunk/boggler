@@ -54,9 +54,13 @@ fn print_words() -> Result<(), std::io::Error> {
 fn main() {
     let mut graph: petgraph::graph::Graph<(), ()> = petgraph::Graph::new();
     let mut positions_to_node_indices: HashMap<(i32,i32), petgraph::graph::NodeIndex> = HashMap::new();
+    let mut node_indices_to_positions: HashMap<petgraph::graph::NodeIndex, (i32,i32)> = HashMap::new();
 
     for position in positions(5,5) {
-        positions_to_node_indices.insert(position, graph.add_node(()));
+        let node = graph.add_node(());
+
+        positions_to_node_indices.insert(position, node);
+        node_indices_to_positions.insert(node, position);
     }
 
     for tuhpl in neighboring_indices(5,5) {

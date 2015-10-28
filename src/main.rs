@@ -4,6 +4,8 @@ extern crate petgraph;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
+use petgraph::graph::Graph;
+use petgraph::graph::NodeIndex;
 use radix_trie::Trie;
 use std::collections::HashMap;
 
@@ -52,9 +54,9 @@ fn print_words() -> Result<(), std::io::Error> {
 }
 
 fn main() {
-    let mut graph: petgraph::graph::Graph<(), ()> = petgraph::Graph::new();
-    let mut positions_to_node_indices: HashMap<(i32,i32), petgraph::graph::NodeIndex> = HashMap::new();
-    let mut node_indices_to_positions: HashMap<petgraph::graph::NodeIndex, (i32,i32)> = HashMap::new();
+    let mut graph: Graph<(), ()> = Graph::new();
+    let mut positions_to_node_indices: HashMap<(i32,i32), NodeIndex> = HashMap::new();
+    let mut node_indices_to_positions: HashMap<NodeIndex, (i32,i32)> = HashMap::new();
 
     for position in positions(5,5) {
         let node = graph.add_node(());
@@ -69,8 +71,8 @@ fn main() {
             ((i1, j1),(i2,j2)) => {
                 println!("({},{}) ({},{})", i1, j1, i2, j2);
 
-                let res1: Option<&petgraph::graph::NodeIndex> = positions_to_node_indices.get(&(i1,j1));
-                let res2: Option<&petgraph::graph::NodeIndex> = positions_to_node_indices.get(&(i2,j2));
+                let res1: Option<&NodeIndex> = positions_to_node_indices.get(&(i1,j1));
+                let res2: Option<&NodeIndex> = positions_to_node_indices.get(&(i2,j2));
 
                 match (res1,res2) {
                     (Some(&index1), Some(&index2)) => {

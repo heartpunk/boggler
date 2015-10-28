@@ -24,14 +24,14 @@ fn neighboring_indices(x: i32, y: i32) -> Vec<((i32,i32),(i32,i32))> {
         .flat_map(|pair|
           match pair {
               (i,j) => vec![
-                  (pair, (i-1,j)),
-                  (pair, (i-1,j-1)),
-                  (pair, (i,j-1))]
+                  (pair, (i-1,   j)),
+                  (pair, (i-1, j-1)),
+                  (pair, (i,   j-1))]
           })
         .filter(|pair_o_pairs|
-                match *pair_o_pairs {
-                    ((_,_), (i2,j2)) => !( i2 < 0 || j2 < 0 )
-                })
+          match *pair_o_pairs {
+              ((_,_), (i2,j2)) => !( i2 < 0 || j2 < 0 )
+          })
         .collect();
 
     assert!(!pairs.is_empty());

@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
 use petgraph::graph::Graph;
+use petgraph::graph::Neighbors;
 use petgraph::graph::NodeIndex;
 use radix_trie::Trie;
 use std::collections::HashMap;
@@ -99,4 +100,16 @@ fn main() {
     match build_grid() {
         Ok(grid1) => grid = grid1,
         Err(str) => panic!("error building grid: {}", str)
+    }
+
+    {
+        let mut position_iterator = positions(4,4).into_iter();
+
+        while let Some((i,j)) = position_iterator.next() {
+            let current_char = grid[i as usize][j as usize];
+            let current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
+                .expect("if this is reached the whole program is hopelessly buggy.");
+            let neighbors: Neighbors<()> = graph.neighbors(*current_node);
+        }
+    }
 }

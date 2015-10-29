@@ -10,6 +10,28 @@ use petgraph::graph::NodeIndex;
 use radix_trie::Trie;
 use std::collections::HashMap;
 
+struct PathComponent<'a> {
+    position: (i32, i32),
+    trie: &'a Trie<String, ()>,
+    character: char,
+    previous: Option<&'a PathComponent<'a>>
+}
+
+
+impl <'a> PathComponent<'a> {
+    fn characters_so_far(&self) -> String {
+        let mut characters: Vec<char> = vec!(self.character);
+        let mut current_path_component = self;
+
+        while let Some(next)  = current_path_component.previous {
+            characters.push(next.character);
+            current_path_component = next;
+        }
+
+        characters.into_iter().collect::<String>()
+    }
+}
+
 fn positions(x: i32, y: i32) -> Vec<(i32,i32)> {
     assert!(x > 0);
     assert!(y > 0);
@@ -64,7 +86,7 @@ fn build_grid() -> Result<[[char; 4]; 4], std::io::Error> {
 }
 
 fn main() {
-    let mut graph: Graph<(), ()> = Graph::new();
+    let mut graph: Graph<(), (), petgraph::Undirected> = Graph::new_undirected();
     let mut positions_to_node_indices: HashMap<(i32,i32), NodeIndex> = HashMap::new();
     let mut node_indices_to_positions: HashMap<NodeIndex, (i32,i32)> = HashMap::new();
     let trie: Trie<String, ()>;
@@ -105,10 +127,46 @@ fn main() {
         let mut position_iterator = positions(4,4).into_iter();
 
         while let Some((i,j)) = position_iterator.next() {
+            println!("first loop");
             let current_char = grid[i as usize][j as usize];
             let current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
                 .expect("if this is reached the whole program is hopelessly buggy.");
             let neighbors: Neighbors<()> = graph.neighbors(*current_node);
+            let current_path = PathComponent {
+                character: current_char,
+                position: (i,j),
+                trie: &trie,
+                previous: None
+            };
+
+            assert!(graph.neighbors(*current_node).count() != 0);
+
+            let mut to_visit: Vec<PathComponent> = neighbors
+                .map(|neighbor| {
+                     let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
+                     let sub_trie: &Trie<String, ()>;
+
+                     match trie.get_node(&current_path.characters_so_far()) {
+                         Some(an_trie) => sub_trie = an_trie,
+                         None => return None
+                     }
+
+                     Some(PathComponent {
+                         position: position,
+                         character: grid[position.0 as usize][position.1 as usize],
+                         trie: sub_trie,
+                         previous: Some(&current_path)
+                     })})
+                .filter(|val| !val.is_none())
+                .map(|val| val.expect("this will always work because we filtered the nones out"))
+                .collect();
+
+            assert!(!to_visit.is_empty());
+
+            while !to_visit.is_empty() {
+                println!("yay!");
+                to_visit.pop();
+            }
         }
     }
 }

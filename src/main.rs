@@ -39,24 +39,23 @@ fn neighboring_indices(x: i32, y: i32) -> Vec<((i32,i32),(i32,i32))> {
     pairs
 }
 
-fn print_words() -> Result<(), std::io::Error> {
+fn build_trie() -> Result<Trie<String, ()>, std::io::Error> {
     let f = try!(File::open("./words"));
     let reader = BufReader::new(f);
     let mut trie: Trie<String, ()> = Trie::new();
 
     for line in reader.lines() {
-        let line: String = try!(line).chars().rev().collect();
-        let actual_line: String = line.chars().rev().collect();
-        trie.insert(actual_line, ());
+        trie.insert(try!(line), ());
     }
 
-    Ok(())
+    Ok(trie)
 }
 
 fn main() {
     let mut graph: Graph<(), ()> = Graph::new();
     let mut positions_to_node_indices: HashMap<(i32,i32), NodeIndex> = HashMap::new();
     let mut node_indices_to_positions: HashMap<NodeIndex, (i32,i32)> = HashMap::new();
+    let trie: Trie<String, ()>;
 
     for position in positions(5,5) {
         let node = graph.add_node(());
@@ -84,8 +83,8 @@ fn main() {
         }
     }
 
-    match print_words() {
-        Ok(_) => std::process::exit(0),
-        Err(str) => println!("{}", str)
+    match build_trie() {
+        Ok(trie1) => trie = trie1,
+        Err(str) => panic!("error building trie: {}", str)
     }
 }

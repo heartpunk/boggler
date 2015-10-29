@@ -82,8 +82,7 @@ fn main() {
             ((i1, j1),(i2,j2)) => {
                 println!("({},{}) ({},{})", i1, j1, i2, j2);
 
-                let msg =
-                    "if this happens, the construction of the position to node index map is broken.";
+                let msg = "the construction of the position to node index map is broken.";
                 let node1: &NodeIndex = positions_to_node_indices.get(&(i1,j1)).expect(msg);
                 let node2: &NodeIndex = positions_to_node_indices.get(&(i2,j2)).expect(msg);
 

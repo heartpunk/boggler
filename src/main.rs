@@ -19,16 +19,27 @@ struct PathComponent<'a> {
 
 
 impl <'a> PathComponent<'a> {
-    fn characters_so_far(&self) -> String {
-        let mut characters: Vec<char> = vec!(self.character);
-        let mut current_path_component = self;
+    fn iter(&self) -> PathComponentIterator {
+        PathComponentIterator {current: self}
+    }
 
-        while let Some(next)  = current_path_component.previous {
-            characters.push(next.character);
-            current_path_component = next;
+    fn chars_so_far(&self) -> String {
+        self.iter().map(|pc| pc.character).collect::<String>()
+    }
+}
+
+struct PathComponentIterator<'a> {
+    current: &'a PathComponent<'a>
+}
+
+impl <'a> Iterator for PathComponentIterator<'a> {
+    type Item = &'a PathComponent<'a>;
+
+    fn next(&mut self) -> Option<&'a PathComponent<'a>> {
+        match self.current.previous {
+            Some(pc) => {self.current = pc; return Some(pc)},
+            None => None
         }
-
-        characters.into_iter().collect::<String>()
     }
 }
 
@@ -146,7 +157,7 @@ fn main() {
                      let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
                      let sub_trie: &Trie<String, ()>;
 
-                     match trie.get_node(&current_path.characters_so_far()) {
+                     match trie.get_node(&current_path.chars_so_far()) {
                          Some(an_trie) => sub_trie = an_trie,
                          None => return None
                      }

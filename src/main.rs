@@ -51,21 +51,32 @@ fn build_trie() -> Result<Trie<String, ()>, std::io::Error> {
     Ok(trie)
 }
 
+fn build_grid() -> Result<[[char; 4]; 4], std::io::Error> {
+    // This is just exactly the same thing as reading in the example board.
+    // I don't really care about spending much time reading in boards right
+    // now, so I'm going to leave this hard coded for the time being.
+
+    Ok([['a','t','g','c'],
+        ['l','r','j','e'],
+        ['j','r','f','g'],
+        ['m','h','e','s']])
+}
+
 fn main() {
     let mut graph: Graph<(), ()> = Graph::new();
     let mut positions_to_node_indices: HashMap<(i32,i32), NodeIndex> = HashMap::new();
     let mut node_indices_to_positions: HashMap<NodeIndex, (i32,i32)> = HashMap::new();
     let trie: Trie<String, ()>;
+    let grid: [[char; 4]; 4];
 
-    for position in positions(5,5) {
+    for position in positions(4,4) {
         let node = graph.add_node(());
 
         positions_to_node_indices.insert(position, node);
         node_indices_to_positions.insert(node, position);
     }
 
-    for tuhpl in neighboring_indices(5,5) {
-        let edge_index: petgraph::graph::EdgeIndex;
+    for tuhpl in neighboring_indices(4,4) {
         match tuhpl {
             ((i1, j1),(i2,j2)) => {
                 println!("({},{}) ({},{})", i1, j1, i2, j2);
@@ -84,4 +95,8 @@ fn main() {
         Ok(trie1) => trie = trie1,
         Err(str) => panic!("error building trie: {}", str)
     }
+
+    match build_grid() {
+        Ok(grid1) => grid = grid1,
+        Err(str) => panic!("error building grid: {}", str)
 }

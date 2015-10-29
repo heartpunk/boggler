@@ -70,15 +70,12 @@ fn main() {
             ((i1, j1),(i2,j2)) => {
                 println!("({},{}) ({},{})", i1, j1, i2, j2);
 
-                let res1: Option<&NodeIndex> = positions_to_node_indices.get(&(i1,j1));
-                let res2: Option<&NodeIndex> = positions_to_node_indices.get(&(i2,j2));
+                let msg =
+                    "if this happens, the construction of the position to node index map is broken.";
+                let node1: &NodeIndex = positions_to_node_indices.get(&(i1,j1)).expect(msg);
+                let node2: &NodeIndex = positions_to_node_indices.get(&(i2,j2)).expect(msg);
 
-                match (res1,res2) {
-                    (Some(&index1), Some(&index2)) => {
-                        edge_index = graph.add_edge(index1, index2, ());
-                    },
-                    _ => panic!("what the fuck")
-                }
+                graph.add_edge(*node1, *node2, ());
             }
         }
     }

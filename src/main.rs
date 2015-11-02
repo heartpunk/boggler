@@ -26,6 +26,10 @@ impl <'a> PathComponent<'a> {
     fn chars_so_far(&self) -> String {
         self.iter().map(|pc| pc.character).collect::<String>()
     }
+
+    fn positions_so_far(&self) -> Vec<(i32,i32)> {
+        self.iter().map(|pc| pc.position).collect::<Vec<(i32,i32)>>()
+    }
 }
 
 struct PathComponentIterator<'a> {

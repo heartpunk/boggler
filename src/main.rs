@@ -100,6 +100,34 @@ fn build_grid() -> Result<[[char; 4]; 4], std::io::Error> {
         ['m','h','e','s']])
 }
 
+fn build_to_visit<'a>(
+    grid: &[[char; 4]; 4],
+    trie: &'a Trie<String, ()>,
+    current_path: &'a PathComponent,
+    neighbors: &Neighbors<()>,
+    node_indices_to_positions: &'a HashMap<NodeIndex, (i32,i32)>
+    ) -> Vec<PathComponent<'a>> {
+        neighbors
+            .map(|neighbor| {
+                 let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
+                 let sub_trie: &Trie<String, ()>;
+
+                 match trie.get_node(&current_path.characters_so_far()) {
+                     Some(an_trie) => sub_trie = an_trie,
+                     None => return None
+                 }
+
+                 Some(PathComponent {
+                     position: position,
+                     character: grid[position.0 as usize][position.1 as usize],
+                     trie: sub_trie,
+                     previous: Some(&current_path)
+                 })})
+            .filter(|val| !val.is_none())
+            .map(|val| val.expect("this will always work because we filtered the nones out"))
+            .collect()
+}
+
 fn main() {
     let mut graph: Graph<(), (), petgraph::Undirected> = Graph::new_undirected();
     let mut positions_to_node_indices: HashMap<(i32,i32), NodeIndex> = HashMap::new();
@@ -156,25 +184,7 @@ fn main() {
 
             assert!(graph.neighbors(*current_node).count() != 0);
 
-            let mut to_visit: Vec<PathComponent> = neighbors
-                .map(|neighbor| {
-                     let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
-                     let sub_trie: &Trie<String, ()>;
-
-                     match trie.get_node(&current_path.characters_so_far()) {
-                         Some(an_trie) => sub_trie = an_trie,
-                         None => return None
-                     }
-
-                     Some(PathComponent {
-                         position: position,
-                         character: grid[position.0 as usize][position.1 as usize],
-                         trie: sub_trie,
-                         previous: Some(&current_path)
-                     })})
-                .filter(|val| !val.is_none())
-                .map(|val| val.expect("this will always work because we filtered the nones out"))
-                .collect();
+            let mut to_visit = build_to_visit(&grid, &trie, &current_path, &neighbors, &node_indices_to_positions);
 
             assert!(!to_visit.is_empty());
 

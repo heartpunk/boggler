@@ -20,11 +20,11 @@ struct PathComponent<'a> {
 
 
 impl <'a> PathComponent<'a> {
-    fn iter(&'a self) -> PathComponentIterator<'a> {
+    fn iter(&self) -> PathComponentIterator<'a> {
         PathComponentIterator {current: Rc::new(*self)}
     }
 
-    fn characters_so_far(&'a self) -> String {
+    fn characters_so_far(&self) -> String {
         self.iter().map(|pc| pc.character).collect::<String>()
     }
 

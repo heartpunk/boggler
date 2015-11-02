@@ -9,39 +9,40 @@ use petgraph::graph::Neighbors;
 use petgraph::graph::NodeIndex;
 use radix_trie::Trie;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 struct PathComponent<'a> {
     position: (i32, i32),
     trie: &'a Trie<String, ()>,
     character: char,
-    previous: Option<&'a PathComponent<'a>>
+    previous: Option<Rc<PathComponent<'a>>>
 }
 
 
-impl <'a> PathComponent<'a> {
-    fn iter(&self) -> PathComponentIterator {
-        PathComponentIterator {current: self}
+impl <'a, 'b> PathComponent<'a> {
+    fn iter(&'b self) -> PathComponentIterator<'a, 'b> {
+        PathComponentIterator {current: &self}
     }
 
     fn characters_so_far(&self) -> String {
         self.iter().map(|pc| pc.character).collect::<String>()
     }
 
-    fn positions_so_far(&self) -> Vec<(i32,i32)> {
+    fn positions_so_far(&'a self) -> Vec<(i32,i32)> {
         self.iter().map(|pc| pc.position).collect::<Vec<(i32,i32)>>()
     }
 }
 
-struct PathComponentIterator<'a> {
-    current: &'a PathComponent<'a>
+struct PathComponentIterator<'a: 'b, 'b> {
+    current: &'b PathComponent<'a>
 }
 
-impl <'a> Iterator for PathComponentIterator<'a> {
-    type Item = &'a PathComponent<'a>;
+impl <'a: 'b, 'b> Iterator for PathComponentIterator<'a, 'b> {
+    type Item = &'b PathComponent<'a>;
 
-    fn next(&mut self) -> Option<&'a PathComponent<'a>> {
+    fn next(&mut self) -> Option<&'b PathComponent<'a>> {
         match self.current.previous {
-            Some(pc) => {self.current = pc; return Some(pc)},
+            Some(ref pc) => {self.current = pc; return Some(pc)},
             None => None
         }
     }
@@ -103,11 +104,11 @@ fn build_grid() -> Result<[[char; 4]; 4], std::io::Error> {
 fn build_to_visit<'a>(
     grid: &[[char; 4]; 4],
     trie: &'a Trie<String, ()>,
-    current_path: &'a PathComponent,
+    current_path: Rc<PathComponent<'a>>,
     graph: &Graph<(), (), petgraph::Undirected>,
     current_node: &NodeIndex,
     node_indices_to_positions: &'a HashMap<NodeIndex, (i32,i32)>
-    ) -> Vec<PathComponent<'a>> {
+    ) -> Vec<Rc<PathComponent<'a>>> {
         graph.neighbors(*current_node)
             .map(|neighbor| {
                  let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
@@ -118,12 +119,12 @@ fn build_to_visit<'a>(
                      None => return None
                  }
 
-                 Some(PathComponent {
+                 Some(Rc::new(PathComponent {
                      position: position,
                      character: grid[position.0 as usize][position.1 as usize],
                      trie: sub_trie,
-                     previous: Some(&current_path)
-                 })})
+                     previous: Some(current_path.clone())
+                 }))})
             .filter(|val| !val.is_none())
             .map(|val| val.expect("this will always work because we filtered the nones out"))
             .collect()
@@ -176,22 +177,26 @@ fn main() {
             let current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
                 .expect("if this is reached the whole program is hopelessly buggy.");
             let neighbors: Neighbors<()> = graph.neighbors(*current_node);
-            let current_path = PathComponent {
+            let mut current_path: Rc<PathComponent> = Rc::new(PathComponent {
                 character: current_char,
                 position: (i,j),
                 trie: &trie,
                 previous: None
-            };
+            });
 
             assert!(graph.neighbors(*current_node).count() != 0);
 
-            let mut to_visit = build_to_visit(&grid, &trie, &current_path, &graph, &current_node, &node_indices_to_positions);
+            let mut to_visit: Vec<Rc<PathComponent>> = build_to_visit(&grid, &trie, current_path, &graph, &current_node, &node_indices_to_positions);
 
             assert!(!to_visit.is_empty());
 
             while !to_visit.is_empty() {
                 println!("yay!");
-                to_visit.pop();
+                let thing = to_visit.pop();
+                match thing {
+                    Some(inner_thing) => current_path = inner_thing,
+                    None => ()
+                }
             }
         }
     }

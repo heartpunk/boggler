@@ -23,7 +23,7 @@ impl <'a> PathComponent<'a> {
         PathComponentIterator {current: self}
     }
 
-    fn chars_so_far(&self) -> String {
+    fn characters_so_far(&self) -> String {
         self.iter().map(|pc| pc.character).collect::<String>()
     }
 
@@ -161,7 +161,7 @@ fn main() {
                      let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
                      let sub_trie: &Trie<String, ()>;
 
-                     match trie.get_node(&current_path.chars_so_far()) {
+                     match trie.get_node(&current_path.characters_so_far()) {
                          Some(an_trie) => sub_trie = an_trie,
                          None => return None
                      }

@@ -104,10 +104,11 @@ fn build_to_visit<'a>(
     grid: &[[char; 4]; 4],
     trie: &'a Trie<String, ()>,
     current_path: &'a PathComponent,
-    neighbors: &Neighbors<()>,
+    graph: &Graph<(), (), petgraph::Undirected>,
+    current_node: &NodeIndex,
     node_indices_to_positions: &'a HashMap<NodeIndex, (i32,i32)>
     ) -> Vec<PathComponent<'a>> {
-        neighbors
+        graph.neighbors(*current_node)
             .map(|neighbor| {
                  let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
                  let sub_trie: &Trie<String, ()>;
@@ -184,7 +185,7 @@ fn main() {
 
             assert!(graph.neighbors(*current_node).count() != 0);
 
-            let mut to_visit = build_to_visit(&grid, &trie, &current_path, &neighbors, &node_indices_to_positions);
+            let mut to_visit = build_to_visit(&grid, &trie, &current_path, &graph, &current_node, &node_indices_to_positions);
 
             assert!(!to_visit.is_empty());
 

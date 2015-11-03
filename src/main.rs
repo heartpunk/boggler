@@ -172,9 +172,9 @@ fn main() {
         let mut position_iterator = positions(4,4).into_iter();
 
         while let Some((i,j)) = position_iterator.next() {
-            println!("first loop");
+            println!("starting from ({}, {})", i, j);
             let current_char = grid[i as usize][j as usize];
-            let current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
+            let mut current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
                 .expect("if this is reached the whole program is hopelessly buggy.");
             let neighbors: Neighbors<()> = graph.neighbors(*current_node);
             let mut current_path: Rc<PathComponent> = Rc::new(PathComponent {
@@ -191,11 +191,21 @@ fn main() {
             assert!(!to_visit.is_empty());
 
             while !to_visit.is_empty() {
-                println!("yay!");
                 let thing = to_visit.pop();
                 match thing {
-                    Some(inner_thing) => current_path = inner_thing,
-                    None => ()
+                    Some(inner_thing) => {
+                        println!("\t({}, {})", inner_thing.position.0, inner_thing.position.1);
+                        current_path = inner_thing;
+                        current_node = positions_to_node_indices.get(&current_path.position).expect("again should be right by construction.");
+                        let mut to_potentially_visit = build_to_visit(&grid, &trie, current_path, &graph, &current_node, &node_indices_to_positions);
+                        while let Some(pc) = to_potentially_visit.pop() {
+                            if pc.positions_so_far().iter().any(|previous_pos| *previous_pos == pc.position) {
+                                continue;
+                            }
+                            to_visit.push(pc.clone());
+                        }
+                    },
+                    None => panic!("at the disco!")
                 }
             }
         }

@@ -19,9 +19,9 @@ struct PathComponent<'a> {
 }
 
 
-impl <'a> PathComponent<'a> {
-    fn iter(&self) -> PathComponentIterator<'a> {
-        PathComponentIterator {current: Rc::new(*self)}
+impl <'a, 'b> PathComponent<'a> {
+    fn iter(&'b self) -> PathComponentIterator<'a, 'b> {
+        PathComponentIterator {current: &self}
     }
 
     fn characters_so_far(&self) -> String {
@@ -33,16 +33,16 @@ impl <'a> PathComponent<'a> {
     }
 }
 
-struct PathComponentIterator<'a> {
-    current: Rc<PathComponent<'a>>
+struct PathComponentIterator<'a: 'b, 'b> {
+    current: &'b PathComponent<'a>
 }
 
-impl <'a> Iterator for PathComponentIterator<'a> {
-    type Item = Rc<PathComponent<'a>>;
+impl <'a: 'b, 'b> Iterator for PathComponentIterator<'a, 'b> {
+    type Item = &'b PathComponent<'a>;
 
-    fn next(&mut self) -> Option<Rc<PathComponent<'a>>> {
+    fn next(&mut self) -> Option<&'b PathComponent<'a>> {
         match self.current.previous {
-            Some(pc) => {self.current = pc; return Some(pc)},
+            Some(ref pc) => {self.current = pc; return Some(pc)},
             None => None
         }
     }
@@ -123,7 +123,7 @@ fn build_to_visit<'a>(
                      position: position,
                      character: grid[position.0 as usize][position.1 as usize],
                      trie: sub_trie,
-                     previous: Some(current_path)
+                     previous: Some(current_path.clone())
                  }))})
             .filter(|val| !val.is_none())
             .map(|val| val.expect("this will always work because we filtered the nones out"))
@@ -177,7 +177,7 @@ fn main() {
             let current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
                 .expect("if this is reached the whole program is hopelessly buggy.");
             let neighbors: Neighbors<()> = graph.neighbors(*current_node);
-            let current_path: Rc<PathComponent> = Rc::new(PathComponent {
+            let mut current_path: Rc<PathComponent> = Rc::new(PathComponent {
                 character: current_char,
                 position: (i,j),
                 trie: &trie,

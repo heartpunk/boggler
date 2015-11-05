@@ -49,12 +49,6 @@ impl <'a: 'b, 'b> Iterator for PathComponentIterator<'a, 'b> {
             Some(ref pc) => {
                 let ret = self.current;
                 self.current = pc;
-//                println!("off by one?");
-//                print_position(&ret.position);
-//                println!("");
-//                print_position(&self.current.position);
-//                println!("");
-//                println!("i hope not");
                 return Some(ret)
             },
             None => {
@@ -97,11 +91,6 @@ fn neighboring_indices(x: i32, y: i32) -> Vec<((i32,i32),(i32,i32))> {
                   (pair, (i-1, j  )),
                   (pair, (i-1, j-1)),
                   ]
-//                  (pair, (i+1, j-1)),
-//                  (pair, (i+1, j+1)),
-//                //(pair, (i  , j  )), you might think you want this entry, for symmetry. but think.
-//                  (pair, (i  , j-1)),
-//                  (pair, (i  , j+1))]
           })
         .filter(|pair_o_pairs|
           match *pair_o_pairs {
@@ -148,35 +137,19 @@ fn build_to_visit<'a>(
         print!("path to ({}, {}) is", current_path.position.0, current_path.position.1);
         let mut in_order_positions = current_path.positions_so_far();
         in_order_positions.reverse();
-//        for position in in_order_positions {
-//            print!(" {},{}", position.0, position.1);
-//        }
-//        println!("");
-//        print!("neighbors of ({}, {}) are ", current_path.position.0, current_path.position.1);
         let ret = graph.neighbors(*current_node)
             .map(|neighbor| {
                 let position = *node_indices_to_positions.get(&neighbor).expect("should be impossible");
                 let sub_trie: &Trie<String, ()>;
                 let this_char: char = grid[position.0 as usize][position.1 as usize];
 
-//                print!("({}, {}) ", position.0, position.1);
-
                 let mut maybe_word = current_path.characters_so_far();
                 maybe_word.push(this_char);
 
-//               println!("");
-//               print_position(&position);
-//               println!(" might get filtered.");
-
-//                println!("maybe_word = {}", maybe_word);
-//                println!("trie.get_descendant succeeded? {}", trie.get_descendant(&maybe_word).is_some());
                 match trie.get_descendant(&maybe_word) {
                     Some(an_trie) => sub_trie = an_trie,
                     None => return None
                 }
-
-//               print_position(&position);
-//               println!(" didn't get filtered for not being a word-path");
 
                 let mut sub_vec = current_path.positions_so_far();
                 sub_vec.reverse();
@@ -185,9 +158,6 @@ fn build_to_visit<'a>(
                 if sub_vec.iter().any(|pos| *pos == position) {
                     return None
                 }
-
-//               print_position(&position);
-//               println!(" didn't get filtered for overlappingness");
 
                 Some(Rc::new(PathComponent {
                     position: position,
@@ -296,14 +266,9 @@ fn main() {
 
             assert!(neighbor_count >= to_visit.len());
 
-//            print_path_stack(&to_visit);
-//            println!("stack should not be empty"); // this is lies
-
             while !to_visit.is_empty() {
                 println!("yay!");
                 let thing = to_visit.pop();
-//                println!("just popped actual");
-//                print_path_stack(&to_visit);
                 match thing {
                     Some(inner_thing) => {
                         let maybe_word = inner_thing.characters_so_far();
@@ -317,29 +282,11 @@ fn main() {
                             },
                             None => println!("didn't find a word")
                         }
-                        //println!("\t({}, {})", inner_thing.position.0, inner_thing.position.1);
                         current_path = inner_thing;
                         current_node = positions_to_node_indices.get(&current_path.position).expect("again should be right by construction.");
                         let mut to_potentially_visit = build_to_visit(&grid, &trie, current_path, &graph, &current_node, &node_indices_to_positions);
-//                        println!("number of potential nodes to visit next is {}", to_potentially_visit.len());
                         while let Some(pc) = to_potentially_visit.pop() {
-//                            println!("just popped potential");
-//                            print_path_stack(&to_visit);
-//                            let mut sub_vec = pc.positions_so_far();
-//                            sub_vec.pop();
-//                            println!("the following path should be a proper subset of the path below it.");
-//                            print_path_from_tuples(sub_vec.clone());
-//                            println!(""); // must always println after print_path*
-//                            print_path_from_tuples(pc.positions_so_far());
-//                            println!("\n*******"); // must always println after print_path*
-//                            if sub_vec.iter().any(|previous_pos| *previous_pos == pc.position) {
-//                                println!("think this is dead code");
-//                                continue;
-//                            }
-
                             to_visit.push(pc.clone());
-//                            println!("just pushed potential to actual");
-//                            print_path_stack(&to_visit);
                         }
                     },
                     None => panic!("at the disco!")

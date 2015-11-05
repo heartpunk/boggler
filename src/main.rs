@@ -134,7 +134,6 @@ fn build_to_visit<'a>(
     current_node: &NodeIndex,
     node_indices_to_positions: &'a HashMap<NodeIndex, (i32,i32)>
     ) -> Vec<Rc<PathComponent<'a>>> {
-        print!("path to ({}, {}) is", current_path.position.0, current_path.position.1);
         let mut in_order_positions = current_path.positions_so_far();
         in_order_positions.reverse();
         let ret = graph.neighbors(*current_node)
@@ -168,7 +167,6 @@ fn build_to_visit<'a>(
             .filter(|val| !val.is_none())
             .map(|val| val.expect("this will always work because we filtered the nones out"))
         .collect();
-        println!("\n");
         ret
 }
 
@@ -244,8 +242,6 @@ fn main() {
         let mut position_iterator = positions(4,4).into_iter();
 
         while let Some((i,j)) = position_iterator.next() {
-            println!("");
-            println!("starting from ({}, {})", i, j);
             let current_char = grid[i as usize][j as usize];
             let mut current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
                 .expect("if this is reached the whole program is hopelessly buggy.");
@@ -261,25 +257,20 @@ fn main() {
 
             let mut to_visit: Vec<Rc<PathComponent>> = build_to_visit(&grid, &trie, current_path, &graph, &current_node, &node_indices_to_positions);
 
-            print_path_stack(&to_visit);
-
             assert!(neighbor_count >= to_visit.len());
 
             while !to_visit.is_empty() {
-                println!("yay!");
                 let thing = to_visit.pop();
                 match thing {
                     Some(inner_thing) => {
                         let maybe_word = inner_thing.characters_so_far();
                         match trie.get(&maybe_word) {
                             Some(_) => {
-                                if maybe_word.len() >= 3 {
-                                    println!("******************************************************************************************************");
+                                if maybe_word.len() > 3 {
                                     println!("{}", maybe_word);
-                                    println!("******************************************************************************************************");
                                 }
                             },
-                            None => println!("didn't find a word")
+                            None => ()
                         }
                         current_path = inner_thing;
                         current_node = positions_to_node_indices.get(&current_path.position).expect("again should be right by construction.");

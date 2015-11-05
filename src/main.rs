@@ -247,9 +247,8 @@ fn main() {
             println!("");
             println!("starting from ({}, {})", i, j);
             let current_char = grid[i as usize][j as usize];
-            let current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
+            let mut current_node: &NodeIndex = positions_to_node_indices.get(&(i,j))
                 .expect("if this is reached the whole program is hopelessly buggy.");
-            let neighbors: Neighbors<()> = graph.neighbors(*current_node);
             let mut current_path: Rc<PathComponent> = Rc::new(PathComponent {
                 character: current_char,
                 position: (i,j),
